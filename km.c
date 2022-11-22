@@ -138,7 +138,7 @@ bool key_index_sync() {
 	char buf[BUFFLEN], rbuf[BUFFLEN];
 	int fd,ret, tencrypt_index,tdecrypt_index;
 
-	con_serv(&fd, REMOTE_IPADDR, SERV_PORT); //连接对方服务器
+	con_serv(&fd, remote_ip, SERV_PORT); //连接对方服务器
 
 	sprintf(buf, "kisync %d %d\n", encrypt_flag, decrypt_flag);
 	send(fd, buf, strlen(buf), 0);
@@ -163,7 +163,7 @@ bool key_sync() {
 	sprintf(buf, "keysync %d %d %d %d\n", delkeyindex, keyindex, sekeyindex, sdkeyindex);
 	
 
-	con_serv(&fd, REMOTE_IPADDR, SERV_PORT); //连接对方服务器
+	con_serv(&fd, remote_ip, SERV_PORT); //连接对方服务器
 
 
 	ret = send(fd, buf, strlen(buf), 0);
@@ -199,7 +199,7 @@ bool derive_sync() {
 	}
 	sprintf(buf, "desync %d", tmp_keyd);
 
-	con_serv(&fd, REMOTE_IPADDR, SERV_PORT); //连接对方服务器
+	con_serv(&fd, remote_ip, SERV_PORT); //连接对方服务器
 	ret = send(fd, buf, strlen(buf), 0);
 	if (ret < 0) {
 		perror("derive_sync connect error!\n");
@@ -377,10 +377,10 @@ void keysync_handle(const char* tdelkeyindex, const char* tkeyindex, const char*
 	char buf[BUFFLEN];
 	sprintf(buf, "keysync %d %d %d %d", delkeyindex, keyindex, sekeyindex, sdkeyindex);
 	send(fd, buf, BUFFLEN, 0);
-	delkeyindex = max(tdelkeyindex, delkeyindex);
-	keyindex = max(tkeyindex, keyindex);
-	sekeyindex = max(tsekeyindex, sekeyindex);
-	sdkeyindex = max(tsdkeyindex, sdkeyindex);
+	delkeyindex = max(atoi(tdelkeyindex), delkeyindex);
+	keyindex = max(atoi(tkeyindex), keyindex);
+	sekeyindex = max(atoi(tsekeyindex), sekeyindex);
+	sdkeyindex = max(atoi(tsdkeyindex), sdkeyindex);
 	key_sync_flag = true;
 	skey_sync_flag = true;
 
