@@ -43,6 +43,7 @@ int SERV_PORT;  //服务器监听端口
 int cur_ekeyd, next_ekeyd, cur_dkeyd, next_dkeyd;   //记录当前的密钥派生参数和下一个密钥派生参数
 int ekey_sindex, dkey_sindex;   //记录一个加解密密钥syn==1的数据包对应的密钥索引
 char raw_dkey[64], raw_ekey[64], prived_dkey[64],prived_ekey[64];  //记录原始量子密钥和派生密钥
+char remote_ip[32];  //记录远程ip地址
 
 struct s_info {
 	struct sockaddr_in  addr;
@@ -164,7 +165,7 @@ bool key_sync() {
 
 	con_serv(&fd, REMOTE_IPADDR, SERV_PORT); //连接对方服务器
 
-	//write(fd, "FUCK\n", 5);
+
 	ret = send(fd, buf, strlen(buf), 0);
 	if (ret < 0) {
 		perror("key_sync connect error!\n");
@@ -310,7 +311,7 @@ void getk_handle(const char* spi, const char* keylen,int fd) {
 	char buf[atoi(keylen)];
 	//读取密钥
 	readkey(buf, '2', keylen);
-	send(fd, buf, len,0);
+	send(fd, buf, atoi(keylen),0);
 	key_sync_flag = false;
 
 }
@@ -598,11 +599,19 @@ int main(int argc, char* argv[]) {
 	pthread_t tid, pid;
 	char buf[1024],client_ip[1024]; 
 	if (argc < 2) {
+		perror("Missing parameter\n");
+		exit(1);
 		//默认服务器监听端口
 		SERV_PORT = DF_SERV_PORT;
 	}
+	else if (argc < 3) {
+		strcpy(remote_ip, argv[1]);
+		SERV_PORT = DF_SERV_PORT;
+		
+	}
 	else {
-		SERV_PORT = atoi(argv[1]);
+		strcpy(remote_ip, argv[1]);
+		SERV_PORT = atoi(argv[2]);
 	}
 	
 	pthread_create(&tid, NULL, thread_write, NULL);  //密钥写入线程启动
