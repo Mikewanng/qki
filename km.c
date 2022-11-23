@@ -178,8 +178,8 @@ bool key_sync() {
 	sscanf(rbuf, "%[^ ] %d %d %d %d", method, &tdelkeyindex, &tkeyindex, &tsekeyindex, &tsdkeyindex);
 	delkeyindex = max(tdelkeyindex, delkeyindex);
 	keyindex = max(tkeyindex, keyindex);
-	sekeyindex = max(tsekeyindex, sekeyindex);
-	sdkeyindex = max(tsdkeyindex, sdkeyindex);
+	sekeyindex = max(tsdkeyindex, sekeyindex);
+	sdkeyindex = max(tsekeyindex, sdkeyindex);
 	close(fd);
 	return true;
 }
@@ -234,7 +234,7 @@ void readkey(const char* buf, const char key_type, const char* keylen) {
 			int i = 0;
 			while (i * KEY_UNIT_SIZE < len) {
 				if (sekeyindex % KEY_RATIO != 0 && (sekeyindex - 1) % KEY_RATIO != 0 && sekeyindex % 2 == (encrypt_flag)) {
-					fseek(fp, sdkeyindex * KEY_UNIT_SIZE, SEEK_SET);
+					fseek(fp, sekeyindex * KEY_UNIT_SIZE, SEEK_SET);
 					fgets(pb, KEY_UNIT_SIZE + 1, fp);
 					i++;
 					pb += KEY_UNIT_SIZE;
@@ -262,7 +262,7 @@ void readkey(const char* buf, const char key_type, const char* keylen) {
 			int i = 0, plen = 0;
 			while (i * KEY_UNIT_SIZE < len) {
 				if (keyindex % KEY_RATIO == 0 || (keyindex - 1) % KEY_RATIO == 0) {
-					fseek(fp, sdkeyindex * KEY_UNIT_SIZE, SEEK_SET);
+					fseek(fp, keyindex * KEY_UNIT_SIZE, SEEK_SET);
 					fgets(pb, KEY_UNIT_SIZE + 1, fp);
 					i++;
 					pb += KEY_UNIT_SIZE;	
@@ -310,7 +310,7 @@ void getsk_handle(const char* spi, const char* keylen, const char* syn, const ch
 			return;
 		}
 	}
-	//判断syn是否为1，是则进行同步，否则不需要同步
+	//判断syn是否为1，是则进行同步，否则不需要同步,同时接收方的key_sync_flag会被设置为true，避免二次同步
 	if (atoi(syn) == 1&& !key_sync_flag) {
 		bool ret = key_sync();
 		if (!ret) {
@@ -350,7 +350,7 @@ void getsk_handle(const char* spi, const char* keylen, const char* syn, const ch
 			//密钥派生参数协商
 			//更新窗口
 			dkey_lw = dkey_rw;
-			dkey_rw = dkey_rw + cur_ekeyd;
+			dkey_rw = dkey_rw + cur_dkeyd;
 		}
 		derive_key(buf, raw_dkey, syn);
 	}
@@ -364,8 +364,8 @@ void keysync_handle(const char* tdelkeyindex, const char* tkeyindex, const char*
 	send(fd, buf, BUFFLEN, 0);
 	delkeyindex = max(atoi(tdelkeyindex), delkeyindex);
 	keyindex = max(atoi(tkeyindex), keyindex);
-	sekeyindex = max(atoi(tsekeyindex), sekeyindex);
-	sdkeyindex = max(atoi(tsdkeyindex), sdkeyindex);
+	sekeyindex = max(atoi(tsdkeyindex), sekeyindex);
+	sdkeyindex = max(atoi(tsekeyindex), sdkeyindex);
 	key_sync_flag = true;
 	skey_sync_flag = true;
 
