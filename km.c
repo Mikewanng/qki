@@ -230,62 +230,45 @@ void readkey(const char* buf, const char key_type, const char* keylen) {
 	}
 	else {
 		if (key_type == '0') {  //加密密钥
-			fseek(fp, sekeyindex * KEY_UNIT_SIZE, SEEK_SET); //文件指针偏移到指定位置
+			//fseek(fp, sekeyindex * KEY_UNIT_SIZE, SEEK_SET); //文件指针偏移到指定位置
 			int i = 0;
 			while (i * KEY_UNIT_SIZE < len) {
 				if (sekeyindex % KEY_RATIO != 0 && (sekeyindex - 1) % KEY_RATIO != 0 && sekeyindex % 2 == (encrypt_flag)) {
-					fgets(pb, KEY_UNIT_SIZE + 1, fp);
-						i++;
-						pb += KEY_UNIT_SIZE;
-				}
-				else {
-					fseek(fp, KEY_UNIT_SIZE, SEEK_CUR);
-				}
-
-				sekeyindex++;
-			}
-			//keyindex += len* KEY_UNIT_SIZE;
-			rewind(fp);
-		}
-		else if (key_type == '1') {  //解密密钥
-			fseek(fp, sdkeyindex * KEY_UNIT_SIZE, SEEK_SET); //文件指针偏移到指定位置
-			int i = 0;
-			while (i * KEY_UNIT_SIZE < len) {
-				if (sdkeyindex % KEY_RATIO != 0 && (sdkeyindex - 1) % KEY_RATIO != 0 && sdkeyindex % 2 == (decrypt_flag)) {
+					fseek(fp, sdkeyindex * KEY_UNIT_SIZE, SEEK_SET);
 					fgets(pb, KEY_UNIT_SIZE + 1, fp);
 					i++;
 					pb += KEY_UNIT_SIZE;
 				}
-				else {
-					fseek(fp, KEY_UNIT_SIZE, SEEK_CUR);
+				sekeyindex++;
+			}
+			rewind(fp);
+		}
+		else if (key_type == '1') {  //解密密钥
+			//fseek(fp, sdkeyindex * KEY_UNIT_SIZE, SEEK_SET); //文件指针偏移到指定位置
+			int i = 0;
+			while (i * KEY_UNIT_SIZE < len) {
+				if (sdkeyindex % KEY_RATIO != 0 && (sdkeyindex - 1) % KEY_RATIO != 0 && sdkeyindex % 2 == (decrypt_flag)) {
+					fseek(fp, sdkeyindex * KEY_UNIT_SIZE, SEEK_SET);
+					fgets(pb, KEY_UNIT_SIZE + 1, fp);
+					i++;
+					pb += KEY_UNIT_SIZE;
 				}
-
 				sdkeyindex++;
 			}
-			//keyindex += len* KEY_UNIT_SIZE;
 			rewind(fp);
 		}
 		else { //sa密钥
-			fseek(fp, keyindex * KEY_UNIT_SIZE, SEEK_SET); //文件指针偏移到指定位置
+			//fseek(fp, keyindex * KEY_UNIT_SIZE, SEEK_SET); //文件指针偏移到指定位置
 			int i = 0, plen = 0;
 			while (i * KEY_UNIT_SIZE < len) {
 				if (keyindex % KEY_RATIO == 0 || (keyindex - 1) % KEY_RATIO == 0) {
-					int j = 0;
-					for (int j = 0; j < KEY_UNIT_SIZE && plen < len; j++) {
-						*pb = fgetc(fp);
-						pb++;
-					}
-
+					fseek(fp, sdkeyindex * KEY_UNIT_SIZE, SEEK_SET);
+					fgets(pb, KEY_UNIT_SIZE + 1, fp);
 					i++;
-					//pb += KEY_UNIT_SIZE;
+					pb += KEY_UNIT_SIZE;	
 				}
-				else {
-					fseek(fp, KEY_UNIT_SIZE, SEEK_CUR);
-				}
-
 				keyindex++;
 			}
-			//keyindex += len* KEY_UNIT_SIZE;
 			rewind(fp);
 		}
 
