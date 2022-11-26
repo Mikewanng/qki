@@ -280,7 +280,13 @@ void readkey(const char* buf, const char key_type, const char* keylen) {
 //派生密钥函数
 void derive_key(const char *buf, const char* raw_key, const char* syn) {
 	strcpy(buf, raw_key);
-	strcat(buf, syn);
+	char* p1 = buf, * p2 = syn;
+	while (*p1 != ' ' && *p2 != ' ') {
+		*p1 = *p1 ^ *p2;
+		p1++;
+		p2++;
+	}
+	//strcat(buf, syn);
 }
 //sa密钥请求处理
 void getk_handle(const char* spi, const char* keylen,int fd) {
