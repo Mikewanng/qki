@@ -43,7 +43,7 @@ int encrypt_flag, decrypt_flag;  //加密密钥以及解密密钥的对应关系，0标识加密密钥
 int SERV_PORT;  //服务器监听端口
 int cur_ekeyd, next_ekeyd, cur_dkeyd, next_dkeyd;   //记录当前的密钥派生参数和下一个密钥派生参数
 int ekey_sindex, dkey_sindex;   //记录一个加解密密钥syn==1的数据包对应的密钥索引
-char raw_dkey[64], raw_ekey[64], prived_dkey[64],prived_ekey[64];  //记录原始量子密钥和派生密钥
+char  raw_ekey[64], raw_dkey[64], raw_olddkey[64], prived_dkey[64],prived_ekey[64];  //记录原始量子密钥和派生密钥
 char remote_ip[32];  //记录远程ip地址
 
 struct s_info {
@@ -324,7 +324,7 @@ void getsk_handle(const char* spi, const char* keylen, const char* syn, const ch
 			return;
 		}
 	}
-	static ekey_lw, ekey_rw, dkey_lw, dkey_rw;
+	static ekey_lw, ekey_rw, dkey_lw, dkey_rw, olddkey_lw, dkey_rw;
 	//记录首个数据包对应的量子密钥索引以及密钥窗口
 	if (atoi(syn) == 1 && *key_type == '0') {
 		ekey_sindex = sekeyindex;
@@ -350,15 +350,23 @@ void getsk_handle(const char* spi, const char* keylen, const char* syn, const ch
 		}
 		derive_key(buf, raw_ekey, syn);
 	}
-	else {  //解密密钥
+	else {  //解密密钥:对于解密密钥维护一个旧密钥的窗口来暂存过去的密钥以应对失序包。
 		if (atoi(syn) == 1 || atoi(syn) >= dkey_rw) {  //如果还没有初始的密钥或者超出密钥服务范围需要更新原始密钥以及syn窗口,协商新的密钥派生参数
+			strcpy(raw_olddkey, raw_dkey);
 			readkey(raw_dkey, *key_type, keylen);
 			//密钥派生参数协商
 			//更新窗口
+			olddkey_lw = dkey_lw;
 			dkey_lw = dkey_rw;
 			dkey_rw = dkey_rw + cur_dkeyd;
 		}
-		derive_key(buf, raw_dkey, syn);
+		if (atoi(syn) < dkey_lw) {
+			derive_key(buf, raw_olddkey, syn);
+		}
+		else if(atoi(syn) >= dkey_lw&& atoi(syn) < dkey_rw) {
+			derive_key(buf, raw_dkey, syn);
+		}
+		
 	}
 	printf("%s\n", buf);
 	send(fd, buf, atoi(keylen), 0);
