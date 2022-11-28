@@ -324,7 +324,7 @@ void getsk_handle(const char* spi, const char* keylen, const char* syn, const ch
 			return;
 		}
 	}
-	static ekey_lw, ekey_rw, dkey_lw, dkey_rw, olddkey_lw, dkey_rw;
+	static ekey_lw, ekey_rw, dkey_lw, dkey_rw, olddkey_lw, olddkey_rw;
 	//记录首个数据包对应的量子密钥索引以及密钥窗口
 	if (atoi(syn) == 1 && *key_type == '0') {
 		ekey_sindex = sekeyindex;
