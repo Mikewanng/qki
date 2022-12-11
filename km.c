@@ -281,6 +281,7 @@ void readkey(const char* buf, const char key_type, const char* keylen) {
 //ÅÉÉúÃÜÔ¿º¯Êı
 void derive_key(const char *buf, const char* raw_key, const char* syn) {
 	strcpy(buf, raw_key);
+	strcat(buf, syn);
 	unsigned char sha1[SHA_DIGEST_LENGTH];
 	SHA1(buf, strlen(buf), sha1);
 	strcpy(buf,sha1);
