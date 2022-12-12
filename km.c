@@ -20,6 +20,8 @@
 #include <openssl/sha.h>
 
 
+//  Брвы: gcc km.c -o km -g -pthread -lcrypto
+
 //#define max(a,b) 
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 #define min(a, b) (((a) < (b)) ? (a) : (b))
