@@ -19,6 +19,14 @@
 #include<math.h>
 #include <openssl/sha.h>
 
+typedef signed char        int8_t;
+typedef short              int16_t;
+typedef int                int32_t;
+typedef long long          int64_t;
+typedef unsigned char      uint8_t;
+typedef unsigned short     uint16_t;
+typedef unsigned int       uint32_t;
+typedef unsigned long long uint64_t;
 
 //  编译: gcc km.c -o km -g -pthread -lcrypto
 
@@ -471,7 +479,7 @@ void do_recdata(int fd, int epfd) {
 	else {
 
 		//memcpy(path, buf + l + 1, s - l - 1);
-		char method[16] = {}, path[256] = {}, protocol[16] = {}, arg1[32] = {}, arg2[32] = {}, arg3[32] = {}, arg4[32] = {};
+		uint8_t method[32] = {}, path[256] = {}, protocol[16] = {}, arg1[64] = {}, arg2[64] = {}, arg3[64] = {}, arg4[64] = {};
 		int key_type;
 		sscanf(buf, "%[^ ] %[^ ] %[^ ] %[^ ] %[^ ]", method, arg1, arg2, arg3, arg4);
 		//对应于getk   arg1==spi, arg2=keylen(字节)
