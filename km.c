@@ -19,14 +19,7 @@
 #include<math.h>
 #include <openssl/sha.h>
 
-typedef signed char        int8_t;
-typedef short              int16_t;
-typedef int                int32_t;
-typedef long long          int64_t;
-typedef unsigned char      uint8_t;
-typedef unsigned short     uint16_t;
-typedef unsigned int       uint32_t;
-typedef unsigned long long uint64_t;
+
 
 //  编译: gcc km.c -o km -g -pthread -lcrypto
 
@@ -172,10 +165,10 @@ bool key_index_sync() {
 void renewkey() {
 
 	//int delkeyindex, keyindex, sekeyindex, sdkeyindex
-	int delindex; 	//要删除的索引
+	int delindex; 	//要删除的密钥的索引
 	delindex = min(min(keyindex, sekeyindex), sdkeyindex);
-	char buf[129];
-	pthread_rwlock_rdlock(&keywr);  //上读锁
+	char buf[BUFFLEN];
+	pthread_rwlock_wrlock(&keywr); //上锁
 	FILE* fp = fopen(KEY_FILE, "r");
 	FILE* fp2 = fopen(TEMPKEY_FILE, "w");
 	if (fp == NULL) {
@@ -183,10 +176,9 @@ void renewkey() {
 		exit(1);
 	}
 	else {
-
 		fseek(fp, delindex * KEY_UNIT_SIZE, SEEK_SET); //文件指针偏移到指定位置
 		while (!feof(fp)) {
-			fgets(buf, 129, fp);
+			fgets(buf, BUFFLEN, fp);
 			fputs(buf, fp2);
 		}
 		fclose(fp2);
