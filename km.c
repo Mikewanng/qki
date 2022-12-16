@@ -163,12 +163,10 @@ bool key_index_sync() {
 
 //更新密钥池，更新删除密钥索引
 void renewkey() {
-
 	//int delkeyindex, keyindex, sekeyindex, sdkeyindex
 	int delindex; 	//要删除的密钥的索引
 	pthread_rwlock_wrlock(&keywr); //上锁
 	delindex = min(min(keyindex, sekeyindex), sdkeyindex);
-	char buf[BUFFLEN];
 	FILE* fp = fopen(KEY_FILE, "r");
 	FILE* fp2 = fopen(TEMPKEY_FILE, "w");
 	if (fp == NULL) {
@@ -177,9 +175,12 @@ void renewkey() {
 	}
 	else {
 		fseek(fp, delindex * KEY_UNIT_SIZE, SEEK_SET); //文件指针偏移到指定位置
+		char buffer = fgetc(fp);
+		int cnt = 0;
 		while (!feof(fp)) {
-			fgets(buf, BUFFLEN, fp);
-			fputs(buf, fp2);
+			cnt++;
+			fputc(buffer, fp2);
+			buffer = fgetc(fp);
 		}
 		fclose(fp2);
 	}
