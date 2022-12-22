@@ -167,6 +167,9 @@ void renewkey() {
 	int delindex; 	//要删除的密钥的索引
 	pthread_rwlock_wrlock(&keywr); //上锁
 	delindex = min(min(keyindex, sekeyindex), sdkeyindex);
+	if (delindex == 0) {
+		return;
+	}
 	FILE* fp = fopen(KEY_FILE, "r");
 	FILE* fp2 = fopen(TEMPKEY_FILE, "w");
 	if (fp == NULL) {
