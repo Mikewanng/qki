@@ -29,8 +29,8 @@
 #define  MAXS 1024  //最大监听数量
 #define  BUFFLEN 1024 //buf大小
 #define  DF_SERV_PORT 50000 //默认服务器监听端口
-#define  MAX_KEYFILE_SIZE  4096  //最大密钥文件大小，当密钥文件大于最大限制时，不再填充密钥
-#define  KEY_CREATE_RATE  128  //密钥每秒生成长度
+#define  MAX_KEYFILE_SIZE  4096000  //最大密钥文件大小，当密钥文件大于最大限制时，不再填充密钥
+#define  KEY_CREATE_RATE  1280  //密钥每秒生成长度
 #define  KEY_UNIT_SIZE    4   //密钥基本存储单位4字节
 #define  KEY_RATIO       100    //SA密钥与会话密钥的比值
 #define  KEY_FILE   "/home/keyfile.kf"   //密钥文件
@@ -228,7 +228,7 @@ bool key_sync() {
 	sekeyindex = max(tsdkeyindex, sekeyindex + delkeyindex) - delkeyindex;
 	sdkeyindex = max(tsekeyindex, sdkeyindex + delkeyindex) - delkeyindex;
 
-	renewkey();
+	//renewkey();
 	close(fd);
 	return true;
 }
@@ -309,7 +309,7 @@ void readkey(const char* buf, const char key_type, const char* keylen) {
 			}
 			rewind(fp);
 		}
-		else { //sa密钥
+		else { //sa密钥和预先共享密钥
 			//fseek(fp, keyindex * KEY_UNIT_SIZE, SEEK_SET); //文件指针偏移到指定位置
 			int i = 0, plen = 0;
 			while (i * KEY_UNIT_SIZE < len) {
@@ -332,10 +332,10 @@ void readkey(const char* buf, const char key_type, const char* keylen) {
 //派生密钥函数
 void derive_key(const char* buf, const char* raw_key, const char* syn) {
 	strcpy(buf, raw_key);
-	strcat(buf, syn);
-	unsigned char sha1[SHA_DIGEST_LENGTH];
-	SHA1(buf, strlen(buf), sha1);
-	strcpy(buf, sha1);
+	//strcat(buf, syn);
+	//unsigned char sha1[SHA_DIGEST_LENGTH];
+	//SHA1(buf, strlen(buf), sha1);
+	//strcpy(buf, sha1);
 
 	/*
 	char* p1 = buf, * p2 = syn;
@@ -368,6 +368,40 @@ void getk_handle(const char* spi, const char* keylen, int fd) {
 }
 //会话密钥请求处理
 void getsk_handle(const char* spi, const char* keylen, const char* syn, const char* key_type, int fd) {
+	//如果双方没有同步加解密密钥池对应关系则首先进行同步
+	int range = 0;
+	if (!(encrypt_flag ^ decrypt_flag)) {
+		bool ret = key_index_sync();
+		if (!ret) {
+			perror("key_index_sync error！\n");
+			return;
+		}
+	}
+	//判断syn是否为1，是则进行同步，否则不需要同步,同时接收方的key_sync_flag会被设置为true，避免二次同步
+	if (atoi(syn) == 1 && !key_sync_flag) {
+		bool ret = key_sync();
+		if (!ret) {
+			perror("key_sync error!\n");
+			return;
+		}
+	}
+	//static ekey_lw, ekey_rw, dkey_lw, dkey_rw, olddkey_lw, olddkey_rw;
+	
+	char buf[BUFFLEN], * pb = buf;
+	//读取密钥
+	readkey(raw_ekey, *key_type, keylen);
+	
+	bool ret = derive_sync();
+	if (!ret) {
+		perror("derive_sync error!\n");
+		return;
+	}
+	//range = cur_ekeyd;
+	sprintf(buf, "%s %d\n",raw_ekey, cur_ekeyd);
+	printf("%s\n", buf);
+	send(fd, buf, strlen(buf), 0);
+}
+void getsk_handle_bak(const char* spi, const char* keylen, const char* syn, const char* key_type, int fd) {
 	//如果双方没有同步加解密密钥池对应关系则首先进行同步
 	if (!(encrypt_flag ^ decrypt_flag)) {
 		bool ret = key_index_sync();
@@ -439,7 +473,7 @@ void keysync_handle(const char* tkeyindex, const char* tsekeyindex, const char* 
 	keyindex = max(atoi(tkeyindex), keyindex + delkeyindex) - delkeyindex;		//修改
 	sekeyindex = max(atoi(tsdkeyindex), sekeyindex + delkeyindex) - delkeyindex;
 	sdkeyindex = max(atoi(tsekeyindex), sdkeyindex + delkeyindex) - delkeyindex;
-	renewkey();
+	//renewkey();
 	key_sync_flag = true;
 	skey_sync_flag = true;
 
