@@ -1,4 +1,4 @@
 # keym
 # key manager source code
-±àÒëÒÀÀµ
+ç¼–è¯‘å‘½ä»¤
 gcc km.c -o km -g -pthread -lcrypto
