@@ -395,10 +395,12 @@ void getsk_handle(const char* spi, const char* keylen, const char* syn, const ch
 			return;
 		}
 		readkey(raw_ekey, *key_type, keylen); //读取密钥
+		printf("qkey:%s kdp:%d\n", raw_ekey, cur_ekeyd);
 		sprintf(buf, "%s %d\n", raw_ekey, cur_ekeyd);
 	}
 	else {
 		readkey(raw_ekey, *key_type, keylen); //读取密钥
+		printf("qkey:%s kdp:%d\n", raw_ekey, cur_dkeyd);
 		sprintf(buf, "%s %d\n", raw_ekey, cur_dkeyd);
 	}
 	
@@ -521,7 +523,7 @@ void do_recdata(int fd, int epfd) {
 		//对应于keysync  arg1=keyindex, arg2=sekeyindex,arg3=sdkeyindex
 		//对应于key_index_sync arg1==encrypt_index, arg2==decrypt_index
 		//对应于derive_sync  arg1==key_d
-		printf("%s %s %s %s %s\n", method, arg1, arg2, arg3, arg4);
+		printf("recieve:%s %s %s %s %s\n", method, arg1, arg2, arg3, arg4);
 		while (1)
 		{
 			n = get_line(fd, buf, BUFFLEN);
@@ -663,7 +665,7 @@ void* thread_write() {
 			int ret = i % 16;
 			buf[i] = transform(ret);
 		}
-
+		renewkey();
 		pthread_rwlock_wrlock(&keywr); //上锁
 		fp = fopen(KEY_FILE, "a+");
 		fseek(fp, 0, SEEK_END); //定位到文件末 
