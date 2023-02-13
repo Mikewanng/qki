@@ -388,7 +388,7 @@ void getsk_handle(const char* spi, const char* keylen, const char* syn, const ch
 	//static ekey_lw, ekey_rw, dkey_lw, dkey_rw, olddkey_lw, olddkey_rw;
 	
 	char buf[BUFFLEN], * pb = buf;
-	if (*key_type = '0') {
+	if (*key_type == '0') {
 		bool ret = derive_sync(); //派生参数同步
 		if (!ret) {
 			perror("derive_sync error!\n");
