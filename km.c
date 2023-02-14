@@ -209,7 +209,7 @@ bool key_sync() {
 	char buf[BUFFLEN], rbuf[BUFFLEN], method[32];
 	//struct sockaddr_in serv_addr, cli_addr;
 	//socklen_t client_addr_size;
-	sprintf(buf, "keysync %d %d %d\n", keyindex + delkeyindex, sekeyindex + delkeyindex, sdkeyindex + delkeyindex);
+	sprintf(buf, "keysync di:%d ei:%d di:%d\n", keyindex + delkeyindex, sekeyindex + delkeyindex, sdkeyindex + delkeyindex);
 
 
 	con_serv(&fd, remote_ip, SERV_PORT); //连接对方服务器
