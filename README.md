@@ -1,4 +1,4 @@
-# keym
-# key manager source code
+# qki
+# quantum key interface
 编译命令
-gcc km.c -o km -g -pthread -lcrypto
+gcc qki.c -o qki -g -pthread 
